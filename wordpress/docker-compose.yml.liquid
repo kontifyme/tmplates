@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:5.7
+    volumes:
+      - ./volumes/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=adminadmin
+
+  wordpress:
+    image: wordpress:4-php7.1-apache
+    ports:
+      - 8080:80
+    volumes:
+      - ./volumes/wp-data:/var/www/html
+    environment:
+      - WORDPRESS_DB_HOST=db
+      - WORDPRESS_DB_PASSWORD=adminadmin
