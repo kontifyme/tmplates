@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  redis:
+    image: redis
+  db:
+    image: postgres:9.6-alpine
+    volumes:
+      - ./volumes/db/data:/var/lib/postgresql
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_PASSWORD=adminadmin
+      - POSTGRES_USER=app
+      - POSTGRES_DB=app_development
+  app:
+    build: .
+    tty: true
+    stdin_open: true
+    command: ["/app/cmd.sh"]
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    environment:
+      - RAILS_ENV=development
+    volumes:
+      - .:/app
+      - .yarnrc:/.yarnrc

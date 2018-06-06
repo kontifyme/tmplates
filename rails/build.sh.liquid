@@ -1,0 +1,49 @@
+VERSION=$(cat VERSION | tr "\n" "\n")
+# SECRET_KEY_BASE=616ed622c7cbad72ff9067839c6f0c04a090da66dc3995e16a0bb1a2133cadfa380c6edfc5be4b4248ae960b0f68f7439c5192d81ad4847767cfcad065612f58
+if [ $? -eq 0 ]
+then
+  if [ -z "$VERSION" ]
+  then
+    echo "Sorry, I do not know the version. Exiting... :-/"
+    exit 1
+  else
+    echo "Building $VERSION..."
+    docker build -t <%= user_name %>/<%= project_name %>:$VERSION .
+    if [ $? -eq 0 ]
+    then
+      echo "...done"
+      echo "Tagging $VERSION..."
+      docker tag <%= user_name %>/<%= project_name %>:$VERSION <%= registry_name %>/<%= user_name %>/<%= project_name %>:$VERSION
+      if [ $? -eq 0 ]
+      then
+        echo "...done"
+        echo "Logging in..."
+        until docker login <%= registry_name %>
+        do
+          echo "Error while logging in. Please try it again. :-/"
+        done;
+        echo "...done"
+        echo "Pushing $VERSION..."
+        docker push <%= registry_name %>/<%= user_name %>/<%= project_name %>:$VERSION
+        if [ $? -eq 0 ]
+        then
+          echo "Tagging..."
+          git tag -a "v$VERSION" -m "Version by build.sh."
+          echo "DONE!"
+        else
+          echo "Error while pushing. Exiting... :-("
+          exit 1
+        fi
+      else
+        echo "Error while tagging image. Exiting... :-("
+        exit 1
+      fi
+    else
+      echo "Error while building image. Exiting... :-("
+      exit 1
+    fi
+  fi;
+else
+    echo "Sorry, I can not run cat or tr command to determine the version. Exiting.... :-?"
+    exit 1
+fi
